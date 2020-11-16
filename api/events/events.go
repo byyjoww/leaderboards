@@ -36,6 +36,7 @@ func Listener(w http.ResponseWriter, r *http.Request) {
 	// fmt.Println(string(ctxIndentedString))
 
 	eventType := ctx.Type
+	fmt.Println("context type: ", ctx.Type)
 	value, isValid := eventsMap[eventType]
 	if !isValid {
 		fmt.Println("invalid event type")

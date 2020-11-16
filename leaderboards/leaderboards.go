@@ -33,7 +33,7 @@ func LoadLeaderboardData() {
 		return
 	}
 
-	fmt.Println("Loading leaderboard data:  \n", string(data))
+	fmt.Println("Loading leaderboard data.")
 	err = json.Unmarshal(data, &globalLeaderboardScores)
 	if err != nil {
 		fmt.Println(err)
@@ -59,7 +59,8 @@ func IncrementPlayerScore(_levelID string, _playerID string, _scoreAmount int) {
 
 	level, err := getLeaderboardByID(_levelID)
 	if err != nil {
-		panic("invalid level")
+		fmt.Println(err)
+		return
 	}
 
 	player, err := getPlayerByID(level.Scores, _playerID)
@@ -93,22 +94,24 @@ func getLeaderboardByID(_levelID string) (*Leaderboard, error) {
 		}
 	}
 
-	// create new leaderboard for id
-	fmt.Println("Leaderboard doesnt exist, creating new leaderboard with id:", _levelID)
-	createLeaderboard(_levelID)
-
-	for i := 0; i < len(globalLeaderboardScores); i++ {
-		if globalLeaderboardScores[i].LevelID == _levelID {
-			return &globalLeaderboardScores[i], nil
-		}
-	}
-
 	return &Leaderboard{}, errors.New("error: level not found")
+
+	// create new leaderboard for id
+	// fmt.Println("Leaderboard doesnt exist, creating new leaderboard with id:", _levelID)
+	// createLeaderboard(_levelID)
+	//
+	// for i := 0; i < len(globalLeaderboardScores); i++ {
+	// 	  if globalLeaderboardScores[i].LevelID == _levelID {
+	// 		return &globalLeaderboardScores[i], nil
+	// 	  }
+	// }
+	//
+	// return &Leaderboard{}, errors.New("error: level not found")
 }
 
-func getLeaderboardIndex(level *Leaderboard) (int, error) {
+func getLeaderboardIndex(_levelID string) (int, error) {
 	for k, v := range globalLeaderboardScores {
-		if level.LevelID == v.LevelID {
+		if _levelID == v.LevelID {
 			return k, nil
 		}
 	}
@@ -136,7 +139,7 @@ func createNewPlayer(_level *[]PlayerData, _playerID string) *PlayerData {
 
 func addPlayerLevelScore(_player *PlayerData, _scoreAmount int) {
 	_player.Score += _scoreAmount
-	fmt.Println("Adding score to existing player: ", _player)
+	fmt.Println("Adding score to existing player:", *_player)
 }
 
 func replacePlayerLevelScore(_player *PlayerData, _scoreAmount int) {
@@ -144,7 +147,7 @@ func replacePlayerLevelScore(_player *PlayerData, _scoreAmount int) {
 		_player.Score = _scoreAmount
 	}
 
-	fmt.Println("Substituting score for higher value: ", _player)
+	fmt.Println("Substituting score for higher value:", *_player)
 }
 
 func sortLeaderboardByScore(level *Leaderboard) {
@@ -153,24 +156,62 @@ func sortLeaderboardByScore(level *Leaderboard) {
 	})
 }
 
-func createLeaderboard(_levelID string) {
+// CreateLeaderboard creates a new leaderboard for a specific level using the level id.
+func CreateLeaderboard(_levelID string) {
 	newLeaderboard := Leaderboard{
 		LevelID: _levelID,
 		Scores:  []PlayerData{},
 	}
 	globalLeaderboardScores = append(globalLeaderboardScores, newLeaderboard)
+	SaveLeaderboardData()
 }
 
-func resetLeaderboard(level *Leaderboard) {
+// ResetLeaderboard resets a specific leaderboard based on level id.
+func ResetLeaderboard(_levelID string) {
 
-	index, err := getLeaderboardIndex(level)
+	index, err := getLeaderboardIndex(_levelID)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	globalLeaderboardScores[index] = Leaderboard{
-		LevelID: level.LevelID,
+		LevelID: _levelID,
 		Scores:  []PlayerData{},
 	}
+
+	SaveLeaderboardData()
+}
+
+// ResetAllLeaderboards resets all leaderboards. Use with caution.
+func ResetAllLeaderboards() {
+	for i := 0; i < len(globalLeaderboardScores); i++ {
+		ResetLeaderboard(globalLeaderboardScores[i].LevelID)
+	}
+	SaveLeaderboardData()
+}
+
+// RemoveLeaderboard deletes a specific leaderboard based on level id.
+func RemoveLeaderboard(_levelID string) {
+
+	index, err := getLeaderboardIndex(_levelID)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if len(globalLeaderboardScores) > 1 {
+		globalLeaderboardScores[index] = globalLeaderboardScores[len(globalLeaderboardScores)-1]
+		globalLeaderboardScores = globalLeaderboardScores[:len(globalLeaderboardScores)-1]
+	} else {
+		globalLeaderboardScores = []Leaderboard{}
+	}
+
+	SaveLeaderboardData()
+}
+
+// RemoveAllLeaderboards deletes all leaderboards. Use with caution.
+func RemoveAllLeaderboards() {
+	globalLeaderboardScores = []Leaderboard{}
+	SaveLeaderboardData()
 }

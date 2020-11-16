@@ -1,14 +1,10 @@
 [
  {
-  "LevelID": "level1",
+  "LevelID": "testLevel",
   "Scores": [
    {
-    "PlayerID": "caykroyd",
-    "Score": 40
-   },
-   {
-    "PlayerID": "byyjoww",
-    "Score": 20
+    "PlayerID": "testPlayer",
+    "Score": 450
    }
   ]
  }
