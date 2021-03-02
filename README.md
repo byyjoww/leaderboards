@@ -1,3 +1,3 @@
-# Slack Bots
+# Leaderboards
 
-Various slack bots used by PS.
+A leaderboard system intended to save player scores.
